@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'login_page.dart';
+import 'dart:async';
+import 'package:geolocator/geolocator.dart';
 
 class MapPage extends StatefulWidget {
   const MapPage({super.key});
@@ -14,15 +17,83 @@ class _MapPageState extends State<MapPage> {
 
   final MapController mapController = MapController();
 
+  StreamSubscription<Position>? positionStream;
+  List<Position> routePoints = [];
+  bool isMeasuring = false;
+
+  Future<void> startMeasurement() async {
+    bool serviceEnabled =
+        await Geolocator.isLocationServiceEnabled();
+
+    if (!serviceEnabled) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Usługi lokalizacyjne są wyłączone'),
+        ),
+      );
+      return;
+    }
+
+    LocationPermission permission =
+        await Geolocator.checkPermission();
+
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+
+    if (permission == LocationPermission.denied ||
+        permission == LocationPermission.deniedForever) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Brak uprawnień do lokalizacji'),
+        ),
+      );
+      return;
+    }
+
+    routePoints.clear();
+
+    setState(() {
+      isMeasuring = true;
+    });
+
+    final LocationSettings locationSettings = AndroidSettings(
+      accuracy: LocationAccuracy.high,
+      distanceFilter: 0,
+      intervalDuration: const Duration(seconds: 1),
+    );
+
+    positionStream = Geolocator.getPositionStream(
+      locationSettings: locationSettings,
+    ).listen((Position position) {
+
+      if (!isMeasuring) return;
+
+      routePoints.add(position);
+
+      print(
+        'Pozycja: '
+        '${position.latitude}, '
+        '${position.longitude} '
+        '${position.timestamp}',
+      );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Mapa'),
+        title: const Text('WalkTracker'),
 
         actions: [
+          // ZMIANA MAPY
           IconButton(
-            icon: Icon(showOrtofoto ? Icons.map : Icons.satellite_alt),
+            icon: Icon(
+              showOrtofoto
+                  ? Icons.map
+                  : Icons.satellite_alt,
+            ),
             tooltip: showOrtofoto
                 ? 'Przełącz na OSM'
                 : 'Przełącz na ortofotomapę',
@@ -33,6 +104,42 @@ class _MapPageState extends State<MapPage> {
               });
             },
           ),
+
+          // MENU UŻYTKOWNIKA
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.account_circle),
+            tooltip: 'Menu użytkownika',
+
+            onSelected: (value) {
+              if (value == 'logout') {
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const LoginPage(),
+                  ),
+                  (route) => false,
+                );
+              }
+            },
+
+            itemBuilder: (context) => [
+              const PopupMenuItem<String>(
+                value: 'logout',
+
+                child: Row(
+                  children: [
+                    Icon(Icons.logout),
+
+                    SizedBox(width: 10),
+
+                    Text('Wyloguj'),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(width: 5),
         ],
       ),
 
@@ -88,7 +195,7 @@ class _MapPageState extends State<MapPage> {
 
           Positioned(
             right: 15,
-            bottom: 30,
+            bottom: 90,
 
             child: Column(
               children: [
@@ -125,6 +232,54 @@ class _MapPageState extends State<MapPage> {
             ),
           ),
         ],
+      ),
+      bottomNavigationBar: BottomAppBar(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            // Rozpocznij pomiar
+            IconButton(
+              icon: const Icon(Icons.play_arrow),
+              tooltip: 'Rozpocznij pomiar',
+              onPressed: startMeasurement,
+            ),
+
+            // Zakończ pomiar
+            IconButton(
+              icon: const Icon(Icons.stop),
+              tooltip: 'Zakończ pomiar',
+              onPressed: () {},
+            ),
+
+            // Resetuj
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              tooltip: 'Resetuj',
+              onPressed: () {},
+            ),
+
+            // Zapisz
+            IconButton(
+              icon: const Icon(Icons.save),
+              tooltip: 'Zapisz',
+              onPressed: () {},
+            ),
+
+            // Wyniki
+            IconButton(
+              icon: const Icon(Icons.analytics),
+              tooltip: 'Wyniki',
+              onPressed: () {},
+            ),
+
+            // Eksportuj
+            IconButton(
+              icon: const Icon(Icons.file_download),
+              tooltip: 'Eksportuj',
+              onPressed: () {},
+            ),
+          ],
+        ),
       ),
     );
   }
