@@ -101,6 +101,18 @@ class _MapPageState extends State<MapPage> {
     print('Liczba zapisanych punktów: ${routePoints.length}');
   }
 
+  void resetMeasurement() {
+    positionStream?.cancel();
+    positionStream = null;
+
+    setState(() {
+      isMeasuring = false;
+      routePoints.clear();
+    });
+
+    print('Pomiar i trasa zostały wyczyszczone.');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -285,7 +297,7 @@ class _MapPageState extends State<MapPage> {
             IconButton(
               icon: const Icon(Icons.refresh),
               tooltip: 'Resetuj',
-              onPressed: () {},
+              onPressed: resetMeasurement,
             ),
 
             // Zapisz
