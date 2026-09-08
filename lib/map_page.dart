@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+
 import 'login_page.dart';
+
 import 'dart:async';
+
 import 'package:geolocator/geolocator.dart';
 
 class MapPage extends StatefulWidget {
@@ -22,20 +25,16 @@ class _MapPageState extends State<MapPage> {
   bool isMeasuring = false;
 
   Future<void> startMeasurement() async {
-    bool serviceEnabled =
-        await Geolocator.isLocationServiceEnabled();
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
 
     if (!serviceEnabled) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Usługi lokalizacyjne są wyłączone'),
-        ),
+        const SnackBar(content: Text('Usługi lokalizacyjne są wyłączone')),
       );
       return;
     }
 
-    LocationPermission permission =
-        await Geolocator.checkPermission();
+    LocationPermission permission = await Geolocator.checkPermission();
 
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
@@ -44,9 +43,7 @@ class _MapPageState extends State<MapPage> {
     if (permission == LocationPermission.denied ||
         permission == LocationPermission.deniedForever) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Brak uprawnień do lokalizacji'),
-        ),
+        const SnackBar(content: Text('Brak uprawnień do lokalizacji')),
       );
       return;
     }
@@ -65,33 +62,43 @@ class _MapPageState extends State<MapPage> {
 
     bool firstPosition = true;
 
-    positionStream = Geolocator.getPositionStream(
-      locationSettings: locationSettings,
-    ).listen((Position position) {
+    positionStream =
+        Geolocator.getPositionStream(locationSettings: locationSettings)
+            .listen((Position position) {
+              if (!isMeasuring) return;
 
-      if (!isMeasuring) return;
+              setState(() {
+                routePoints.add(position);
+              });
 
-      routePoints.add(position);
+              if (firstPosition) {
+                mapController.move(
+                  LatLng(position.latitude, position.longitude),
+                  17,
+                );
 
-      if (firstPosition) {
-        mapController.move(
-          LatLng(
-            position.latitude,
-            position.longitude,
-          ),
-          17,
-        );
+                firstPosition = false;
+              }
 
-        firstPosition = false;
-      }
+              print(
+                'Pozycja: '
+                '${position.latitude}, '
+                '${position.longitude} '
+                '${position.timestamp}',
+              );
+            });
+  }
 
-      print(
-        'Pozycja: '
-        '${position.latitude}, '
-        '${position.longitude} '
-        '${position.timestamp}',
-      );
+  void stopMeasurement() {
+    positionStream?.cancel();
+    positionStream = null;
+
+    setState(() {
+      isMeasuring = false;
     });
+
+    print('Pomiar zakończony.');
+    print('Liczba zapisanych punktów: ${routePoints.length}');
   }
 
   @override
@@ -103,11 +110,7 @@ class _MapPageState extends State<MapPage> {
         actions: [
           // ZMIANA MAPY
           IconButton(
-            icon: Icon(
-              showOrtofoto
-                  ? Icons.map
-                  : Icons.satellite_alt,
-            ),
+            icon: Icon(showOrtofoto ? Icons.map : Icons.satellite_alt),
             tooltip: showOrtofoto
                 ? 'Przełącz na OSM'
                 : 'Przełącz na ortofotomapę',
@@ -128,9 +131,7 @@ class _MapPageState extends State<MapPage> {
               if (value == 'logout') {
                 Navigator.pushAndRemoveUntil(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => const LoginPage(),
-                  ),
+                  MaterialPageRoute(builder: (context) => const LoginPage()),
                   (route) => false,
                 );
               }
@@ -194,6 +195,21 @@ class _MapPageState extends State<MapPage> {
 
                   userAgentPackageName: 'com.example.moj_projekt_flutter',
                 ),
+
+              PolylineLayer(
+                polylines: [
+                  if (routePoints.length >= 2)
+                    Polyline(
+                      points: routePoints
+                          .map(
+                            (position) =>
+                                LatLng(position.latitude, position.longitude),
+                          )
+                          .toList(),
+                      strokeWidth: 5,
+                    ),
+                ],
+              ),
 
               RichAttributionWidget(
                 attributions: [
@@ -262,7 +278,7 @@ class _MapPageState extends State<MapPage> {
             IconButton(
               icon: const Icon(Icons.stop),
               tooltip: 'Zakończ pomiar',
-              onPressed: () {},
+              onPressed: stopMeasurement,
             ),
 
             // Resetuj
