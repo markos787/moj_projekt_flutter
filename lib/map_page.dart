@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:moj_projekt_flutter/results_page.dart';
 import 'login_page.dart';
 import 'dart:async';
 import 'package:geolocator/geolocator.dart';
@@ -125,19 +126,29 @@ class _MapPageState extends State<MapPage> {
       "properties": {
         "created_at": DateTime.now().toIso8601String(),
         "points_count": routePoints.length,
+
+        "points": routePoints.map((position) {
+          return {
+            "latitude": position.latitude,
+            "longitude": position.longitude,
+            "timestamp": position.timestamp.toIso8601String(),
+            "accuracy": position.accuracy,
+            "altitude": position.altitude,
+            "speed": position.speed,
+          };
+        }).toList(),
       },
       "geometry": {
         "type": "LineString",
-        "coordinates": routePoints
-            .map(
-              (position) => [
-                position.longitude,
-                position.latitude,
-              ],
-            )
-            .toList(),
+        "coordinates": routePoints.map((position) {
+          return [
+            position.longitude,
+            position.latitude,
+          ];
+        }).toList(),
       },
     };
+
     final directory = await getApplicationDocumentsDirectory();
     final timestamp = DateTime.now()
         .toIso8601String()
@@ -358,7 +369,14 @@ class _MapPageState extends State<MapPage> {
             IconButton(
               icon: const Icon(Icons.analytics),
               tooltip: 'Wyniki',
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ResultsPage(),
+                  ),
+                );
+              },
             ),
 
             // Eksportuj
