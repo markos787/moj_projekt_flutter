@@ -63,6 +63,8 @@ class _MapPageState extends State<MapPage> {
       intervalDuration: const Duration(seconds: 1),
     );
 
+    bool firstPosition = true;
+
     positionStream = Geolocator.getPositionStream(
       locationSettings: locationSettings,
     ).listen((Position position) {
@@ -70,6 +72,18 @@ class _MapPageState extends State<MapPage> {
       if (!isMeasuring) return;
 
       routePoints.add(position);
+
+      if (firstPosition) {
+        mapController.move(
+          LatLng(
+            position.latitude,
+            position.longitude,
+          ),
+          17,
+        );
+
+        firstPosition = false;
+      }
 
       print(
         'Pozycja: '
