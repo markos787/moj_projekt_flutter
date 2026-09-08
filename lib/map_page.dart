@@ -2,12 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:moj_projekt_flutter/results_page.dart';
+
 import 'login_page.dart';
+
 import 'dart:async';
+
 import 'package:geolocator/geolocator.dart';
+
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 class MapPage extends StatefulWidget {
   const MapPage({super.key});
@@ -114,11 +120,9 @@ class _MapPageState extends State<MapPage> {
 
   Future<void> saveMeasurement() async {
     if (routePoints.length < 2) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Brak trasy do zapisania'),
-        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Brak trasy do zapisania')));
       return;
     }
     final geoJson = {
@@ -141,10 +145,7 @@ class _MapPageState extends State<MapPage> {
       "geometry": {
         "type": "LineString",
         "coordinates": routePoints.map((position) {
-          return [
-            position.longitude,
-            position.latitude,
-          ];
+          return [position.longitude, position.latitude];
         }).toList(),
       },
     };
@@ -154,21 +155,40 @@ class _MapPageState extends State<MapPage> {
         .toIso8601String()
         .replaceAll(':', '-')
         .replaceAll('.', '-');
-    final file = File(
-      '${directory.path}/trasa_$timestamp.geojson',
-    );
-    await file.writeAsString(
-      jsonEncode(geoJson),
-    );
+    final file = File('${directory.path}/trasa_$timestamp.geojson');
+    await file.writeAsString(jsonEncode(geoJson));
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Trasa została zapisana\n${file.path}',
-        ),
-      ),
+      SnackBar(content: Text('Trasa została zapisana\n${file.path}')),
     );
     print('Zapisano trasę: ${file.path}');
+  }
+
+  Future<void> exportRoutes() async {
+    final directory = await getApplicationDocumentsDirectory();
+    final files = directory
+        .listSync()
+        .whereType<File>()
+        .where(
+          (file) =>
+              file.path.endsWith('.geojson') &&
+              file.path.split(Platform.pathSeparator).last.startsWith('trasa_'),
+        )
+        .toList();
+    if (files.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Brak zapisanych tras do eksportu')),
+      );
+      return;
+    }
+    // Udostępnienie wszystkich plików GeoJSON
+    await SharePlus.instance.share(
+      ShareParams(
+        text: 'Zapisane trasy GPS',
+        files: files.map((file) => XFile(file.path)).toList(),
+      ),
+    );
   }
 
   @override
@@ -372,9 +392,7 @@ class _MapPageState extends State<MapPage> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => const ResultsPage(),
-                  ),
+                  MaterialPageRoute(builder: (context) => const ResultsPage()),
                 );
               },
             ),
@@ -383,7 +401,7 @@ class _MapPageState extends State<MapPage> {
             IconButton(
               icon: const Icon(Icons.file_download),
               tooltip: 'Eksportuj',
-              onPressed: () {},
+              onPressed: exportRoutes,
             ),
           ],
         ),
