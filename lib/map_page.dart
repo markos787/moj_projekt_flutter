@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-
 import 'login_page.dart';
-
 import 'dart:async';
-
 import 'package:geolocator/geolocator.dart';
+import 'dart:convert';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
 
 class MapPage extends StatefulWidget {
   const MapPage({super.key});
@@ -104,13 +104,60 @@ class _MapPageState extends State<MapPage> {
   void resetMeasurement() {
     positionStream?.cancel();
     positionStream = null;
-
     setState(() {
       isMeasuring = false;
       routePoints.clear();
     });
-
     print('Pomiar i trasa zostały wyczyszczone.');
+  }
+
+  Future<void> saveMeasurement() async {
+    if (routePoints.length < 2) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Brak trasy do zapisania'),
+        ),
+      );
+      return;
+    }
+    final geoJson = {
+      "type": "Feature",
+      "properties": {
+        "created_at": DateTime.now().toIso8601String(),
+        "points_count": routePoints.length,
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": routePoints
+            .map(
+              (position) => [
+                position.longitude,
+                position.latitude,
+              ],
+            )
+            .toList(),
+      },
+    };
+    final directory = await getApplicationDocumentsDirectory();
+    final timestamp = DateTime.now()
+        .toIso8601String()
+        .replaceAll(':', '-')
+        .replaceAll('.', '-');
+    final file = File(
+      '${directory.path}/trasa_$timestamp.geojson',
+    );
+    await file.writeAsString(
+      jsonEncode(geoJson),
+    );
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Trasa została zapisana\n${file.path}',
+        ),
+      ),
+    );
+    print('Zapisano trasę: ${file.path}');
   }
 
   @override
@@ -304,7 +351,7 @@ class _MapPageState extends State<MapPage> {
             IconButton(
               icon: const Icon(Icons.save),
               tooltip: 'Zapisz',
-              onPressed: () {},
+              onPressed: saveMeasurement,
             ),
 
             // Wyniki
