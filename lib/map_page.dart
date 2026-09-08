@@ -2,16 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:moj_projekt_flutter/results_page.dart';
-
 import 'login_page.dart';
-
 import 'dart:async';
-
 import 'package:geolocator/geolocator.dart';
-
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -32,6 +27,9 @@ class _MapPageState extends State<MapPage> {
   bool isMeasuring = false;
 
   Future<void> startMeasurement() async {
+    if (isMeasuring) {
+      return;
+    }
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
 
     if (!serviceEnabled) {
@@ -135,7 +133,7 @@ class _MapPageState extends State<MapPage> {
           return {
             "latitude": position.latitude,
             "longitude": position.longitude,
-            "timestamp": position.timestamp.toIso8601String(),
+            "timestamp": position.timestamp?.toIso8601String(),
             "accuracy": position.accuracy,
             "altitude": position.altitude,
             "speed": position.speed,
@@ -165,30 +163,44 @@ class _MapPageState extends State<MapPage> {
   }
 
   Future<void> exportRoutes() async {
-    final directory = await getApplicationDocumentsDirectory();
-    final files = directory
-        .listSync()
-        .whereType<File>()
-        .where(
-          (file) =>
-              file.path.endsWith('.geojson') &&
-              file.path.split(Platform.pathSeparator).last.startsWith('trasa_'),
-        )
-        .toList();
-    if (files.isEmpty) {
+    try {
+      final directory = await getApplicationDocumentsDirectory();
+      final files = directory
+          .listSync()
+          .whereType<File>()
+          .where(
+            (file) =>
+                file.path.endsWith('.geojson') &&
+                file.path
+                    .split(Platform.pathSeparator)
+                    .last
+                    .startsWith('trasa_'),
+          )
+          .toList();
+      if (files.isEmpty) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Brak zapisanych tras do eksportu'),
+          ),
+        );
+        return;
+      }
+      await SharePlus.instance.share(
+        ShareParams(
+          title: 'Eksport tras',
+          text: 'Zapisane trasy GPS',
+          files: files.map((file) => XFile(file.path)).toList(),
+        ),
+      );
+    } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Brak zapisanych tras do eksportu')),
+        SnackBar(
+          content: Text('Błąd eksportu: $e'),
+        ),
       );
-      return;
     }
-    // Udostępnienie wszystkich plików GeoJSON
-    await SharePlus.instance.share(
-      ShareParams(
-        text: 'Zapisane trasy GPS',
-        files: files.map((file) => XFile(file.path)).toList(),
-      ),
-    );
   }
 
   @override
@@ -196,7 +208,6 @@ class _MapPageState extends State<MapPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('WalkTracker'),
-
         actions: [
           // ZMIANA MAPY
           IconButton(
@@ -204,7 +215,6 @@ class _MapPageState extends State<MapPage> {
             tooltip: showOrtofoto
                 ? 'Przełącz na OSM'
                 : 'Przełącz na ortofotomapę',
-
             onPressed: () {
               setState(() {
                 showOrtofoto = !showOrtofoto;
