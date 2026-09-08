@@ -95,6 +95,16 @@ class _ResultsPageState extends State<ResultsPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Zapisane wyniki'),
+        leading: IconButton(
+          icon: const Icon(Icons.close),
+          tooltip: 'Wróć do mapy',
+          onPressed: () {
+            Navigator.popUntil(
+              context,
+              (route) => route.isFirst,
+            );
+          },
+        ),
       ),
 
       body: isLoading
@@ -366,6 +376,16 @@ class _RouteDetailsPageState extends State<RouteDetailsPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Wyniki trasy'),
+        leading: IconButton(
+          icon: const Icon(Icons.close),
+          tooltip: 'Zamknij',
+          onPressed: () {
+            Navigator.popUntil(
+              context,
+              (route) => route.isFirst,
+            );
+          },
+        ),
       ),
 
       body: Column(
