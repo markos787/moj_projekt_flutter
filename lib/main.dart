@@ -1,120 +1,153 @@
+// Import podstawowych elementów frameworka Flutter, m.in.:
 import 'package:flutter/material.dart';
+
+// Import własnego pliku zawierającego stronę logowania.
 import 'login_page.dart';
 
+// Główna funkcja programu.
 void main() {
+  // runApp() uruchamia aplikację i wyświetla przekazany do niej widget.
+  // MyApp jest głównym widgetem całej aplikacji.
   runApp(const MyApp());
 }
+
+// StatelessWidget oznacza, że sam widget nie przechowuje zmiennego stanu, który powodowałby jego przebudowanie.
 class MyApp extends StatelessWidget {
+  // const pozwala utworzyć widget jako stałą, jeżeli jego właściwości nie zmieniają się w czasie.
   const MyApp({super.key});
-  // This widget is the root of your application.
+
+  // Metoda build() odpowiada za zdefiniowanie wyglądu i struktury widgetu.
+  // Flutter wywołuje ją w celu utworzenia elementów interfejsu użytkownika.
   @override
   Widget build(BuildContext context) {
+    // MaterialApp jest głównym widgetem aplikacji korzystającej z Material Design.
+    // Odpowiada m.in. za konfigurację motywu, nawigację oraz stronę startową.
     return MaterialApp(
+      // Usuwa napis "DEBUG" pojawiający się standardowo w trybie debugowania.
       debugShowCheckedModeBanner: false,
+      // Tytuł aplikacji.
       title: 'Moja aplikacja',
+
+      // Konfiguracja wyglądu całej aplikacji.
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
+        // fromSeed() automatycznie tworzy kompletną paletę kolorów
+        // na podstawie jednego koloru bazowego.
         colorScheme: .fromSeed(seedColor: Colors.green),
       ),
+      // LoginPage jest widgetem zdefiniowanym w pliku login_page.dart.
+      // const oznacza, że jeżeli konstruktor LoginPage na to pozwala,
+      // widget może zostać utworzony jako stała.
       home: const LoginPage(),
     );
   }
 }
 
+/*
+  Poniższa część jest zakomentowanym przykładem strony głównej aplikacji.
+  MyHomePage jest przykładem StatefulWidget, czyli widgetu,
+  którego wygląd może zależeć od zmieniającego się stanu.
+  W przeciwieństwie do StatelessWidget, StatefulWidget współpracuje
+  z osobnym obiektem State, który przechowuje zmienne dane widgetu.
+*/
+
+// // StatefulWidget stosuje się wtedy, gdy zawartość interfejsu
+// // może zmieniać się podczas działania aplikacji.
 // class MyHomePage extends StatefulWidget {
+
+//   // Konstruktor widgetu.
+//   // Wymagany jest parametr title, który zostanie przekazany
+//   // do obiektu MyHomePage.
 //   const MyHomePage({super.key, required this.title});
 
-//   // This widget is the home page of your application. It is stateful, meaning
-//   // that it has a State object (defined below) that contains fields that affect
-//   // how it looks.
-
-//   // This class is the configuration for the state. It holds the values (in this
-//   // case the title) provided by the parent (in this case the App widget) and
-//   // used by the build method of the State. Fields in a Widget subclass are
-//   // always marked "final".
-
+//   // final oznacza, że wartość zostaje ustalona podczas tworzenia
+//   // widgetu i nie może być później zmieniona.
 //   final String title;
 
+//   // Metoda createState() tworzy obiekt przechowujący zmienny stan tego widgetu.
 //   @override
 //   State<MyHomePage> createState() => _MyHomePageState();
 // }
 
+// // Klasa przechowująca zmienny stan widgetu MyHomePage.
+// // Znak "_" na początku nazwy oznacza, że klasa jest prywatna
+// // dla tego pliku.
 // class _MyHomePageState extends State<MyHomePage> {
+
 //   int _counter = 0;
 
+//   // Funkcja zmieniająca wartość licznika.
 //   void _incrementCounter() {
+
+//     // setState() informuje Fluttera, że stan widgetu został zmieniony.
+//     // Po wykonaniu setState() Flutter ponownie wywoła metodę build()
+//     // i odświeży elementy interfejsu zależne od zmienionych danych.
 //     setState(() {
-//       // This call to setState tells the Flutter framework that something has
-//       // changed in this State, which causes it to rerun the build method below
-//       // so that the display can reflect the updated values. If we changed
-//       // _counter without calling setState(), then the build method would not be
-//       // called again, and so nothing would appear to happen.
 //       _counter--;
 //     });
 //   }
 
+//   // Metoda odpowiedzialna za utworzenie interfejsu strony.
 //   @override
 //   Widget build(BuildContext context) {
-//     // This method is rerun every time setState is called, for instance as done
-//     // by the _incrementCounter method above.
-//     //
-//     // The Flutter framework has been optimized to make rerunning build methods
-//     // fast, so that you can just rebuild anything that needs updating rather
-//     // than having to individually change instances of widgets.
+
+//     // Scaffold zapewnia podstawową strukturę strony aplikacji
+//     // zgodną z Material Design.
 //     return Scaffold(
+
+//       // AppBar to górny pasek aplikacji.
 //       appBar: AppBar(
-//         // TRY THIS: Try changing the color here to a specific color (to
-//         // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-//         // change color while the other colors stay the same.
-//         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-//         // Here we take the value from the MyHomePage object that was created by
-//         // the App.build method, and use it to set our appbar title.
+
+//         // Ustawienie koloru tła paska.
+//         //
+//         // Theme.of(context) pobiera aktualny motyw aplikacji,
+//         // a colorScheme.inversePrimary pobiera jeden z kolorów zdefiniowanych w tym motywie.
+//         backgroundColor: Theme.of(context)
+//             .colorScheme
+//             .inversePrimary,
+
+//         // Tekst wyświetlany na pasku aplikacji.
 //         title: Text(widget.title),
 //       ),
+
+//       // body jest główną częścią strony
 //       body: Center(
-//         // Center is a layout widget. It takes a single child and positions it
-//         // in the middle of the parent.
+
+//         // Center umieszcza swój element potomny na środku dostępnego
 //         child: Column(
-//           // Column is also a layout widget. It takes a list of children and
-//           // arranges them vertically. By default, it sizes itself to fit its
-//           // children horizontally, and tries to be as tall as its parent.
-//           //
-//           // Column has various properties to control how it sizes itself and
-//           // how it positions its children. Here we use mainAxisAlignment to
-//           // center the children vertically; the main axis here is the vertical
-//           // axis because Columns are vertical (the cross axis would be
-//           // horizontal).
-//           //
-//           // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-//           // action in the IDE, or press "p" in the console), to see the
-//           // wireframe for each widget.
+
+//           // Column układa swoje elementy jeden pod drugim.
+//           // mainAxisAlignment.center powoduje wyśrodkowanie elementów
 //           mainAxisAlignment: .center,
+
+//           // Lista widgetów znajdujących się wewnątrz Column.
 //           children: [
-//             const Text('You have pushed the button this many times:'),
+
+//             const Text(
+//               'You have pushed the button this many times:',
+//             ),
+
+//             // Wyświetlenie aktualnej wartości zmiennej _counter.
 //             Text(
 //               '$_counter',
+
+//               // headlineMedium jest jednym ze zdefiniowanych stylów tekstu.
 //               style: Theme.of(context).textTheme.headlineMedium,
 //             ),
 //           ],
 //         ),
 //       ),
+
+//       // floatingActionButton to przycisk umieszczony standardowo
+//       // w dolnym obszarze strony.
 //       floatingActionButton: FloatingActionButton(
+
+//         // Funkcja wykonywana po naciśnięciu przycisku.
 //         onPressed: _incrementCounter,
+
+//         // Tekst pomocniczy wyświetlany np. po przytrzymaniu przycisku.
 //         tooltip: 'Increment',
+
+//         // Ikona znajdująca się wewnątrz przycisku.
 //         child: const Icon(Icons.add),
 //       ),
 //     );

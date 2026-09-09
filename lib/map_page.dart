@@ -24,6 +24,7 @@ class MapPage extends StatefulWidget {
 
 class _MapPageState extends State<MapPage> {
   bool showOrtofoto = false;
+
   final MapController mapController = MapController();
   StreamSubscription<Position>? positionStream;
   List<Position> routePoints = [];
