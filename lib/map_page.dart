@@ -208,18 +208,11 @@ class _MapPageState extends State<MapPage> {
       },
     };
 
-    // ========================================================
-    // 15. UTWORZENIE NAZWY I LOKALIZACJI PLIKU
-    // ========================================================
-
     // Pobranie katalogu dokumentów aplikacji.
     final directory = await getApplicationDocumentsDirectory();
 
-    // Utworzenie znacznika czasu, który zostanie wykorzystany
-    // w nazwie pliku.
-    //
-    // Zamiana ":" i "." na "-" pozwala uniknąć problemów
-    // z nazwą pliku.
+    // Utworzenie znacznika czasu, który zostanie wykorzystany w nazwie pliku.
+    // Zamiana ":" i "." na "-" pozwala uniknąć problemów z nazwą pliku.
     final timestamp = DateTime.now()
         .toIso8601String()
         .replaceAll(':', '-')

@@ -11,7 +11,8 @@ void main() {
   runApp(const MyApp());
 }
 
-// StatelessWidget oznacza, że sam widget nie przechowuje zmiennego stanu, który powodowałby jego przebudowanie.
+// StatelessWidget oznacza, że sam widget nie przechowuje zmiennego stanu,
+//który powodowałby jego przebudowanie.
 class MyApp extends StatelessWidget {
   // const pozwala utworzyć widget jako stałą, jeżeli jego właściwości nie zmieniają się w czasie.
   const MyApp({super.key});
